@@ -1,67 +1,62 @@
 package verkehrschaostruck;
 
-import java.util.Properties;
+import java.util.*;
 
-import org.omg.CORBA.ORB;
-import org.omg.CosNaming.NameComponent;
-import org.omg.CosNaming.NamingContextExt;
-import org.omg.CosNaming.NamingContextExtHelper;
-import org.omg.PortableServer.POA;
-import org.omg.PortableServer.POAHelper;
+import org.omg.CORBA.*;
+import org.omg.CosNaming.*;
+import org.omg.PortableServer.*;
 
 import verkehrschaos.*;
 
 public class TruckMain {
-
 	public static void main(String[] args) {
-		System.out.println(args[0] + "," + args[1] + "," + args[2] + ","
-				+ args[3]);
-
 		try {
-			/* ORB Eigenschaften setzen */
-			Properties probs = new Properties();
-			probs.put("org.omg.CORBA.ORBInitialPort", args[0]);
-			probs.put("org.omg.CORBA.ORBInitialHost", args[1]);
-			ORB orb = ORB.init(args, probs);
+			// ORB Eigenschaften setzen
+			Properties props = new Properties();
+			props.put("org.omg.CORBA.ORBInitialPort", args[0]);
+			props.put("org.omg.CORBA.ORBInitialHost", args[1]);
+			ORB orb = ORB.init(args, props);
 
-			POA rootPoa = POAHelper.narrow(orb
-					.resolve_initial_references("RootPOA"));
+			// Referenz zum rootPOA holen und POA Manager aktivieren
+			POA rootPoa = POAHelper.narrow(orb.resolve_initial_references("RootPOA"));
 			rootPoa.the_POAManager().activate();
-
-			/*
-			 * Company vom NameService holen, damit ich meinen Truck erstellen
-			 * kann
-			 */
-			NamingContextExt nc = NamingContextExtHelper.narrow(orb
-					.resolve_initial_references("NameService"));
-			org.omg.CORBA.Object obj = nc.resolve_str(args[3]);
-
-			TruckCompany company = TruckCompanyHelper.narrow(obj);
-
-			/* Erstellung meines Trucks mit Name des LKWs und Company */
+			
+			// Erzeuge Servant
 			TruckImpl truck = new TruckImpl(args[2]);
-
-			/* Objektref holen */
+			
+			// Objekt Referenz des Servants holen
 			org.omg.CORBA.Object ref = rootPoa.servant_to_reference(truck);
+			
+			// Downcast Corba-Objekt -> Truck
 			Truck href = TruckHelper.narrow(ref);
-
-			company.addTruck(href);
-
-			/* F�r Namensdienst Namen vergeben und rebinden */
+			
+			// Referenz zum Namensdienst (root naming context holen)
+			org.omg.CORBA.Object objRef = orb.resolve_initial_references("NameService");
+			
+			// Verwendung von NamingContextExt, ist Teil der Interoperable
+			// Naming Sevice (INS) Spezifikation.
+			NamingContextExt ncRef = NamingContextExtHelper.narrow(objRef);
+			
+			// binde die Objekt Referenz an einen Namen
 			String name = args[2];
-			NameComponent path[] = nc.to_name(name);
-			nc.rebind(path, href);
+			NameComponent path[] = ncRef.to_name(name);
+			ncRef.rebind(path, href);
+			
+			// Referenz auf company vom Namserver holen
+			TruckCompany company = TruckCompanyHelper.narrow(ncRef.resolve_str(args[3]));
+						
+			// Truck bei Company anmelden
+			company.addTruck(href);		
 
-			System.out.println("LKW ready and waiting....");
+			System.out.println("Truck ready and waiting....");
 
+			// Orb starten
 			orb.run();
 
 		} catch (Exception e) {
 			e.printStackTrace();
-			System.out.println("Fehler");
+			System.out.println("Truck, ERROR");
 			System.exit(1);
 		}
-
 	}
-
 }
