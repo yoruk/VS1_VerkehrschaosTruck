@@ -11,18 +11,21 @@ public class TruckImpl extends TruckPOA {
 	
 	public TruckImpl(String name) {
 		super();
+		System.out.println("DEBUG: TruckImpl: TruckImpl(name)");
 		this.name = name;
 	}
 	
 	@Override
 	/* Gibt den Namen des LKWs. */
 	public String getName() {
+		System.out.println("DEBUG: TruckImpl: getName()");
 		return name;
 	}
 
 	@Override
 	/* Gibt die zugeordnete Spedition */
 	public TruckCompany getCompany() {
+		System.out.println("DEBUG: TruckImpl: getCompany()");
 		return company;
 	}
 
@@ -32,6 +35,7 @@ public class TruckImpl extends TruckPOA {
      * Zu Debug-Zwecken soll der Name der neuen Spedition auf der Konsole ausgegeben werden. 
      */
 	public void setCompany(TruckCompany company) {
+		System.out.println("DEBUG: TruckImpl: setCompany()");
 		this.company = company;
 	}
 
@@ -41,6 +45,7 @@ public class TruckImpl extends TruckPOA {
      * Wird von Streets aufgerufen.
      */
 	public void setCoordinate(double x, double y) {
+		System.out.println("DEBUG: TruckImpl: setCoordinate()");
 		this.x =  x;
 		this.y = y;
 	}
@@ -54,6 +59,7 @@ public class TruckImpl extends TruckPOA {
      * Nach orb.shutdown kleine Pause einlegen (0.5 sec) um Exception zu vermeiden.
      */
 	public void putOutOfService() {
+		System.out.println("DEBUG: TruckImpl: putOutOfService()");
 		System.exit(0);
 	}
 
